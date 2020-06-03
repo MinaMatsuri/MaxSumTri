@@ -1,0 +1,153 @@
+package com.company;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+
+    public class Main {
+
+        public static final int ROWSIZE = 15 ;
+        public static final int COLUMNSIZE = 15;
+
+        public static int[][] numbersArray = new int[ROWSIZE][COLUMNSIZE];
+
+        public static int findMaxSum(String fileName, ArrayList<Location> path) {
+
+            readNumbersFromFile(fileName, numbersArray);
+
+            if (isPrime(numbersArray[0][0])) {
+                return 0;
+            } else {
+                return findMaxSumRec(0, 0, ROWSIZE, path);
+            }
+
+        }
+
+        /**
+         */
+        private static int findMaxSumRec(int x, int y, int size, ArrayList<Location> path) {
+
+            int totalLeft = 0, totalRight = 0;
+
+            ArrayList<Location> tempListLeft = new ArrayList<>();
+            ArrayList<Location> tempListRight = new ArrayList<>();
+
+            if (x >= size) {
+                return 0;
+            } else if (x == (size - 1)) {
+                path.add(new Location(x, y, numbersArray[x][y]));
+                return numbersArray[x][y];
+            }
+
+            if (!isPrime(numbersArray[x + 1][y])) {
+                totalRight = findMaxSumRec(x + 1, y, size, tempListRight);
+            }
+
+            if (!isPrime(numbersArray[x + 1][y + 1])) {
+                totalLeft = findMaxSumRec(x + 1, y + 1, size, tempListLeft);
+            }
+
+            // max sum path will be full path
+            if (isPrime(numbersArray[x + 1][y + 1]) && isPrime(numbersArray[x + 1][y]))
+                return Integer.MIN_VALUE;
+
+            // backtrace
+            if (totalLeft > totalRight) {
+                path.addAll(tempListLeft);
+                path.add(new Location(x, y, numbersArray[x][y]));
+                return totalLeft + numbersArray[x][y];
+            } else {
+                path.addAll(tempListRight);
+                path.add(new Location(x, y, numbersArray[x][y]));
+                return totalRight + numbersArray[x][y];
+            }
+        }
+
+
+        private static boolean isPrime(int number) {
+
+            for (int i = 2; i < number; ++i) {
+                if ((number % i) == 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+
+        private static void readNumbersFromFile(String fileName, int[][] numbersArray) {
+
+            try {
+
+                InputStream inputStream = new FileInputStream(fileName);
+
+                Scanner scanner = new Scanner(inputStream);
+
+                int indexCounter = 0;
+
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    String[] numbers = line.split("\\s+");
+                    for (int i = 0; i < numbers.length; ++i) {
+                        numbersArray[indexCounter][i] = Integer.parseInt(numbers[i]);
+                    }
+
+                    ++indexCounter;
+
+                }
+
+            } catch (FileNotFoundException e) {
+                System.out.println("File not found!");
+                java.lang.System.exit(1);
+            }catch (IOException e){
+                System.out.println("File input/output problem occurred!");
+                java.lang.System.exit(1);
+            } catch (ArrayIndexOutOfBoundsException e){
+                System.out.println("Please check your input file or row and column sizes!");
+                java.lang.System.exit(1);
+            }
+        }
+
+
+
+
+
+        public static void main(String args[]) {
+
+            ArrayList<Location> path = new ArrayList<>();
+
+            System.out.printf("\n#### Value of Maximum Sum \n\n%d", findMaxSum("triangle.txt", path));
+
+            System.out.println("\n\n#### Path of Maximum Sum \n");
+            for (int i = path.size() - 1; i >= 0; --i) {
+                System.out.print(path.get(i).number + " > ");
+            }
+
+            System.out.print("Finish!");
+
+            System.out.println("\n\n#### Path Visualization of Maximum Sum \n");
+            for (int i = 0; i < ROWSIZE; ++i) {
+                int listIndex = path.size() - i - 1;
+                for (int j = 0; j < COLUMNSIZE; ++j) {
+                    if (listIndex < path.size() && listIndex >= 0) {
+                        if (path.get(listIndex).getX() == i && path.get(listIndex).getY() == j) {
+                            System.out.printf("%d\t", path.get(listIndex).getNumber());
+                        } else {
+                            System.out.printf("0\t");
+                        }
+                    } else {
+                        System.out.printf("0\t");
+                    }
+                }
+                System.out.print('\n');
+            }
+        }
+    }
+
+
+
